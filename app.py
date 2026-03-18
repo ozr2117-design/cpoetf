@@ -103,7 +103,7 @@ def get_realtime_data(symbols):
                 }
     return realtime_dict
 
-def get_macro_data(symbol="hf_CL"):
+def get_macro_data(symbol="hf_OIL"):
     """使用新浪API获取全球期货报价"""
     url = f"http://hq.sinajs.cn/list={symbol}"
     try:
@@ -199,7 +199,7 @@ with col2:
 with col3:
     st.metric("021528 (主动基金) 拟合", "计算中...", f"{active_fund_pct:.2f}%")
 with col4:
-    macro_data = get_macro_data("hf_CL")
+    macro_data = get_macro_data("hf_OIL")
     if macro_data:
         macro_pct = macro_data['pct_chg']
         macro_icon = "🔥" if macro_pct > 1.5 else ("💧" if macro_pct < 0 else "")
