@@ -103,6 +103,25 @@ def get_realtime_data(symbols):
                 }
     return realtime_dict
 
+def get_macro_data(symbol="hf_CL"):
+    """使用新浪API获取全球期货报价"""
+    url = f"http://hq.sinajs.cn/list={symbol}"
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=5)
+        res.encoding = 'gbk'
+        match = re.search(r'var hq_str_(\w+)="(.*)";', res.text)
+        if match:
+            data = match.group(2).split(',')
+            if len(data) > 13:
+                price = float(data[0])
+                pre_close = float(data[8])
+                name = data[13]
+                pct_chg = (price / pre_close - 1) * 100 if pre_close > 0 else 0.0
+                return {"name": name, "price": price, "pct_chg": pct_chg}
+    except Exception:
+        pass
+    return None
+
 # 需要获取的实时标的：515880, 515050, 及 021528持仓的10只个股
 required_symbols = ['sh515880', 'sh515050'] + list(FUND_WEIGHTS.keys())
 rt_data = get_realtime_data(required_symbols)
@@ -172,13 +191,21 @@ etf_515050_pct = rt_data.get('sh515050', {}).get('pct_chg', 0.0)
 # ==========================================
 
 # 顶部状态卡片
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("515880 (通信ETF) 实时", f"{rt_data.get('sh515880', {}).get('price', 0.0):.3f}", f"{etf_pct:.2f}%")
 with col2:
-    st.metric("021528 (主动基金) 拟合", "计算中...", f"{active_fund_pct:.2f}%")
-with col3:
     st.metric("515050 (5G ETF) 实时", f"{rt_data.get('sh515050', {}).get('price', 0.0):.3f}", f"{etf_515050_pct:.2f}%")
+with col3:
+    st.metric("021528 (主动基金) 拟合", "计算中...", f"{active_fund_pct:.2f}%")
+with col4:
+    macro_data = get_macro_data("hf_CL")
+    if macro_data:
+        macro_pct = macro_data['pct_chg']
+        macro_icon = "🔥" if macro_pct > 1.5 else ("💧" if macro_pct < 0 else "")
+        st.metric(f"宏观反指 ({macro_data['name']})", f"{macro_data['price']:.2f}", f"{macro_pct:.2f}% {macro_icon}")
+    else:
+        st.metric("宏观反指预警", "获取失败", "0.00%")
 
 # 操作备忘录
 with st.expander("📖 波段交易规则与参数说明", expanded=False):
