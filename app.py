@@ -3,7 +3,6 @@ from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 import requests
 import datetime
-import plotly.graph_objects as go
 import re
 
 # ==========================================
@@ -217,36 +216,4 @@ if not pd.isna(curr_bbl) and not pd.isna(curr_bbu):
     elif curr_price > curr_bbu:
         st.error(f"⚠️【回调风险】当前价格 ({curr_price:.3f}) 已突破布林线上轨 ({curr_bbu:.3f})，短期回调风险巨大！")
 
-# ==========================================
-# 6. 主图可视化 (带BOLL的K线图)
-# ==========================================
-st.markdown("### 📈 sh515880 行情视图")
-
-fig = go.Figure()
-
-# K 线图
-fig.add_trace(go.Candlestick(
-    x=df_hist['date'],
-    open=df_hist['open'],
-    high=df_hist['high'],
-    low=df_hist['low'],
-    close=df_hist['close'],
-    name='K线',
-    increasing_line_color='red',
-    decreasing_line_color='green'
-))
-
-# BOLL 轨道
-fig.add_trace(go.Scatter(x=df_hist['date'], y=df_hist['BBU'], line=dict(color='orange', width=1, dash='dot'), name='BOLL 上轨'))
-fig.add_trace(go.Scatter(x=df_hist['date'], y=df_hist['MA'], line=dict(color='gray', width=1, dash='dash'), name='BOLL 中轨'))
-fig.add_trace(go.Scatter(x=df_hist['date'], y=df_hist['BBL'], line=dict(color='blue', width=1, dash='dot'), name='BOLL 下轨'))
-
-fig.update_layout(
-    xaxis_rangeslider_visible=False,
-    margin=dict(l=10, r=10, t=10, b=10),
-    template="plotly_white",
-    hovermode='x unified',
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-)
-
-st.plotly_chart(fig, width='stretch')
+# 图表渲染代码（包含K线和BOLL轨迹）已移除，以提高主界面刷新和加载速度。
