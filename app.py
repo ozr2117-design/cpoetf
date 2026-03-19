@@ -123,7 +123,15 @@ def get_macro_data(symbol="hf_OIL"):
     return None
 
 # 需要获取的实时标的：515880, 515050, 及 021528持仓的10只个股
-required_symbols = ['sh515880', 'sh515050'] + list(FUND_WEIGHTS.keys())
+ETF_515880_HOLDINGS = [
+    'sz300308', 'sh601138', 'sz000063', 'sh688036', 'sz300502', 
+    'sz300394', 'sh600522', 'sh600745', 'sh600487', 'sz300136'
+]
+ETF_515050_HOLDINGS = [
+    'sz002475', 'sz300308', 'sh601138', 'sz000063', 'sz000938', 
+    'sh603986', 'sz300502', 'sh600703', 'sz300394', 'sz002463'
+]
+required_symbols = list(set(['sh515880', 'sh515050'] + list(FUND_WEIGHTS.keys()) + ETF_515880_HOLDINGS + ETF_515050_HOLDINGS))
 rt_data = get_realtime_data(required_symbols)
 
 # ==========================================
@@ -242,5 +250,23 @@ if not pd.isna(curr_bbl) and not pd.isna(curr_bbu):
         st.success(f"🟢【黄金坑】当前价格 ({curr_price:.3f}) 已跌破布林线下轨 ({curr_bbl:.3f})，极度恐慌出现黄金坑！")
     elif curr_price > curr_bbu:
         st.error(f"⚠️【回调风险】当前价格 ({curr_price:.3f}) 已突破布林线上轨 ({curr_bbu:.3f})，短期回调风险巨大！")
+
+with st.expander("📊 核心ETF前十大持仓实时涨跌", expanded=False):
+    col1, col2 = st.columns(2)
+    def render_holding_list(holdings, title):
+        st.markdown(f"**{title}**")
+        html_str = ""
+        for sym in holdings:
+            data = rt_data.get(sym)
+            if data:
+                color = "#ff4b4b" if data['pct_chg'] > 0 else "#00c04b" if data['pct_chg'] < 0 else "gray"
+                sign = "+" if data['pct_chg'] > 0 else ""
+                html_str += f"<div style='display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.2);'><span style='flex: 1;'>{data['name']}</span><span style='flex: 1; text-align: right;'>{data['price']:.2f}</span><span style='flex: 1; text-align: right; color: {color}; font-weight: bold;'>{sign}{data['pct_chg']:.2f}%</span></div>"
+        st.markdown(html_str, unsafe_allow_html=True)
+
+    with col1:
+        render_holding_list(ETF_515880_HOLDINGS, "515880 (通信ETF) 前十大持仓")
+    with col2:
+        render_holding_list(ETF_515050_HOLDINGS, "515050 (5G ETF) 前十大持仓")
 
 # 图表渲染代码（包含K线和BOLL轨迹）已移除，以提高主界面刷新和加载速度。
