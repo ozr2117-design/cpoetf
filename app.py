@@ -127,10 +127,20 @@ ETF_515880_HOLDINGS = [
     'sz300308', 'sh601138', 'sz000063', 'sh688036', 'sz300502', 
     'sz300394', 'sh600522', 'sh600745', 'sh600487', 'sz300136'
 ]
+ETF_515880_WEIGHTS = {
+    'sz300308': 12.50, 'sh601138': 11.23, 'sz000063': 11.09, 'sh688036': 6.74, 'sz300502': 5.91, 
+    'sz300394': 5.20, 'sh600522': 4.75, 'sh600745': 3.95, 'sh600487': 3.02, 'sz300136': 2.43
+}
+
 ETF_515050_HOLDINGS = [
     'sz002475', 'sz300308', 'sh601138', 'sz000063', 'sz000938', 
     'sh603986', 'sz300502', 'sh600703', 'sz300394', 'sz002463'
 ]
+ETF_515050_WEIGHTS = {
+    'sz002475': 9.23, 'sz300308': 7.71, 'sh601138': 6.94, 'sz000063': 6.84, 'sz000938': 3.81, 
+    'sh603986': 3.67, 'sz300502': 3.65, 'sh600703': 3.25, 'sz300394': 3.21, 'sz002463': 3.09
+}
+
 required_symbols = list(set(['sh515880', 'sh515050'] + list(FUND_WEIGHTS.keys()) + ETF_515880_HOLDINGS + ETF_515050_HOLDINGS))
 rt_data = get_realtime_data(required_symbols)
 
@@ -253,7 +263,7 @@ if not pd.isna(curr_bbl) and not pd.isna(curr_bbu):
 
 with st.expander("📊 核心ETF前十大持仓实时涨跌", expanded=False):
     col1, col2 = st.columns(2)
-    def render_holding_list(holdings, title):
+    def render_holding_list(holdings, weights, title):
         st.markdown(f"**{title}**")
         html_str = ""
         for sym in holdings:
@@ -261,12 +271,14 @@ with st.expander("📊 核心ETF前十大持仓实时涨跌", expanded=False):
             if data:
                 color = "#ff4b4b" if data['pct_chg'] > 0 else "#00c04b" if data['pct_chg'] < 0 else "gray"
                 sign = "+" if data['pct_chg'] > 0 else ""
-                html_str += f"<div style='display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.2);'><span style='flex: 1;'>{data['name']}</span><span style='flex: 1; text-align: right;'>{data['price']:.2f}</span><span style='flex: 1; text-align: right; color: {color}; font-weight: bold;'>{sign}{data['pct_chg']:.2f}%</span></div>"
+                weight_str = f"<span style='color: #888; font-size: 0.85em; margin-left: 4px;'>({weights.get(sym, 0):.2f}%)</span>"
+                name_display = f"{data['name']}{weight_str}"
+                html_str += f"<div style='display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.2);'><span style='flex: 1;'>{name_display}</span><span style='flex: 1; text-align: right;'>{data['price']:.2f}</span><span style='flex: 1; text-align: right; color: {color}; font-weight: bold;'>{sign}{data['pct_chg']:.2f}%</span></div>"
         st.markdown(html_str, unsafe_allow_html=True)
 
     with col1:
-        render_holding_list(ETF_515880_HOLDINGS, "515880 (通信ETF) 前十大持仓")
+        render_holding_list(ETF_515880_HOLDINGS, ETF_515880_WEIGHTS, "515880 (通信ETF) 前十大持仓")
     with col2:
-        render_holding_list(ETF_515050_HOLDINGS, "515050 (5G ETF) 前十大持仓")
+        render_holding_list(ETF_515050_HOLDINGS, ETF_515050_WEIGHTS, "515050 (5G ETF) 前十大持仓")
 
 # 图表渲染代码（包含K线和BOLL轨迹）已移除，以提高主界面刷新和加载速度。
